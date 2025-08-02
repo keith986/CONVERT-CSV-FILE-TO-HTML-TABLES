@@ -15,30 +15,33 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState([]);
 
-  useEffect(() => {
-     fetchDataCollectionFromFirebase()
+  const fetchDataFirebase = async () => {
+    await fetchDataCollectionFromFirebase()
     .then((response) => {
       setIsCollection(response);
     })
     .catch((err) => {console.error('Could not fetch your table(s)' + err.message)})
+  }
+    
+  useEffect( () => {
+    fetchDataFirebase()
   }, [isCollection])
 
-  const loadData = async () => {  
+  const loadData = async (ev) => {  
     const _idi = $('#_idi').text();
-    
-    $('#tbl').show('1000')
-    $('#imp').hide('1000')
+    $('#tbl').show('1000');
+    $('#imp').hide('1000');
     try {
       setIsLoading(true);
-      const fetchedData = await fetchDataFromFirebase(_idi);
-      setData(fetchedData.records);
+      const fetchedData = await fetchDataFromFirebase(ev.target.id);
+      setData({records : fetchedData.records, id : ev.target.id});
     } catch (error) {
       console.error('Failed to load data:', error.message);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handleFileDelete = async(ev) => {
     await deleteDoc(doc(db , "csvData", ev.target.id));
   }
@@ -118,12 +121,12 @@ export default function Home() {
          </li>
          {!!isCollection && isCollection.map((col, _id) => {
           return (
-         <li key={_id} onClick={loadData}>
-            <Link href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group z-0">
+         <li key={_id} id={col.id} onClick={loadData}>
+            <Link href="#" id={col.id} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group z-10">
                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                <path stroke="currentColor" strokeWidth="2" d="M3 11h18M3 15h18M8 10.792V19m4-8.208V19m4-8.208V19M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
                </svg>
-               <span className="flex-1 ms-3 whitespace-nowrap text-sm overflow-hidden text-ellipsis" id="_idi">{col.id}</span>
+               <span className="flex-1 ms-3 whitespace-nowrap text-sm overflow-hidden text-ellipsis" id={col.id}>{col.id}</span>
                <svg className="w-5 h-5 text-gray-300 dark:text-gray-800 hover:text-red-800 z-100" id={col.id} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" onClick={handleFileDelete}> 
                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
                </svg>
@@ -174,7 +177,7 @@ export default function Home() {
 </div>
       
       <div className='relative overflow-x-auto shadow-md sm:rounded-lg' id="tbl" style={{maxWidth: "1150px", width: "100%"}}>
-        {isLoading ? (
+            {isLoading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <span className="ml-2">Loading data...</span>

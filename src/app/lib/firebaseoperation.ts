@@ -5,7 +5,7 @@ import {
   getDocs, 
   doc, 
   deleteDoc,
-  query,
+  updateDoc,
   orderBy,
   Timestamp 
 } from 'firebase/firestore';
@@ -34,14 +34,14 @@ export const uploadDataToFirebase = async (data: any[]): Promise<void> => {
 };
 
 export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
-  const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+  const q = collection(db, COLLECTION_NAME);
   const qSnapshot = await getDocs(q);
   
-  return qSnapshot.docs.map(doc => ({
-    id: doc.id
-  }));
+   return qSnapshot.docs.map(doc => ({
+    id : doc.id
+   }));
 
-  await Promise.all(qSnapshot)
+ await Promise.all(qSnapshot)
 };
 
 export const fetchDataFromFirebase = async (id: string): Promise<void> => {
@@ -59,3 +59,37 @@ export const fetchDataFromFirebase = async (id: string): Promise<void> => {
 export const deleteDataFromFirebase = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, COLLECTION_NAME, id));
 };
+
+export const updateDataInFirebase = async ({dataId, editingData, recordIndex}: {dataId: string,editingData: any,recordIndex: number}): Promise<void> => {
+  try{
+    
+  const docRef = doc(db, COLLECTION_NAME, dataId);
+  const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('Document does not exist');
+    }
+
+  const currentData = docSnap.data();
+  const records = currentData.records || [];
+
+  const updatedRecord = {
+    ...records[recordIndex],
+    ...editingData
+  };
+
+  const updatedRecords = [...records];
+  updatedRecords[recordIndex] = updatedRecord;
+
+  await updateDoc(docRef, {
+    records: updatedRecords
+  })
+
+  return {status: "green", message: "Data updated successfully"};
+
+}catch(error){
+  console.log(error.message)
+}
+  await Promise.all()
+};
+
