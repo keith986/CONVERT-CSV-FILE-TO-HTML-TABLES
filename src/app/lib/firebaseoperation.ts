@@ -1,6 +1,7 @@
 import { 
   collection, 
   addDoc, 
+  getDoc,
   getDocs, 
   doc, 
   deleteDoc,
@@ -13,16 +14,23 @@ import { db } from '../firebase.tsx';
 const COLLECTION_NAME = 'csvData';
 
 export const uploadDataToFirebase = async (data: any[]): Promise<void> => {
-  const batch = data.map(async (item) => {
+  // Create a single document with the table name and data array
     const docData = {
-      ...item,
+      records: data.map(item => ({
+        ...item,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      })),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };
-    return addDoc(collection(db, COLLECTION_NAME), docData);
-  });
-  
-  await Promise.all(batch);
+
+    // Add the document to Firebase
+    await addDoc(collection(db, COLLECTION_NAME), docData);
+    
+    console.log(`Successfully uploaded ${data.length} records`);
+
+    //await Promise.all(batch);
 };
 
 export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
@@ -37,15 +45,13 @@ export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
 };
 
 export const fetchDataFromFirebase = async (id: string): Promise<void> => {
-  const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
-  const querySnapshot = await getDocs(q);
-  
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date()
-  }));
+  console.log(id)
+  const q = doc(db, COLLECTION_NAME, id);
+  const docSnap = await getDoc(q);
+  if (docSnap.exists()) {
+  return docSnap.data();
+  }
+  return;
 
   //await Promise.all(querySnapshot)
 };
