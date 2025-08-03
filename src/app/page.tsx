@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { parseCSV, convertToObjects } from './lib/csvutils.ts';
-import { uploadDataToFirebase, fetchDataCollectionFromFirebase,fetchDataFromFirebase } from './lib/firebaseoperation.ts';
+import { uploadDataToFirebase, fetchDataCollectionFromFirebase,fetchDataFromFirebase,deleteDataFromFirebase } from './lib/firebaseoperation.ts';
 import { toast } from 'react-toastify';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase.tsx';
@@ -97,6 +97,8 @@ export default function Home() {
   const refreshing = async () => {
     const fetchedData = await fetchDataFromFirebase(isTable.toString());
     if(fetchedData.records === [] || fetchedData.records.length === 0){
+      const id = isTable.toString();
+      await deleteDataFromFirebase(id);
       window.location.reload();
     }else{
     setData({records : fetchedData.records, id : isTable.toString()});
