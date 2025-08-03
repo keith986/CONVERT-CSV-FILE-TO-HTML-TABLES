@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
-import { updateDataInFirebase, deleteDataFromFirebase } from '../lib/firebaseoperation';
+import { updateDataInFirebase, deleteRowDataFromFirebase } from '../lib/firebaseoperation';
 import { toast } from 'react-toastify';
-import $ from 'jquery'
 
 const datatable = ({ data }) => {
 const [editingId, setEditingId] = useState<string | null>(null);
@@ -18,7 +17,7 @@ const dataId = data.id
 
   const headers = Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key));
 
-    const handleEdit = (row, indx) => {
+  const handleEdit = (row, indx) => {
     setEditingId(row);
     const rowData: any = {};
     headers.forEach(header => {
@@ -49,7 +48,7 @@ const dataId = data.id
       })
         setEditingId(null);
         setEditingData({});
-        window.reload.load()
+        window.location.reload()
       }else{
       toast.error("Could not update! Try again later.",{
       position: "top-right",
@@ -82,21 +81,56 @@ const dataId = data.id
     setEditingData({});
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this row?')) return;
+  const handleDelete = async (indx, row) => {
+    if (!confirm('Are you sure you want to delete this row?')) return; 
+      await deleteRowDataFromFirebase({dataId: dataId, recordIndex : indx, deletingData: row})
+      .then(res => {
+      if(res.status === "green"){
+      toast.success(res.message,{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+        setEditingId(null);
+        setEditingData({});
+        window.location.reload()
+      }else{
+      toast.error("Could not update! Try again later.",{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+      }
+    })
+    .catch((err) => {
+      toast.error(err.message,{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+    })
     
-    try {
-      await deleteDataFromFirebase(id);
-    } catch (error) {
-      console.error('Delete failed:', error);
-      alert('Delete failed');
-    }
   };
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" style={{maxWidth: "1150px", width: "100%"}}>
       <div className="px-6 py-4 border-b">
-        <h2 className="text-xl font-semibold">Data Table ({data.length} records)</h2>
+        <h2 className="text-xl font-semibold">Data Table ({data.records.length} records)</h2>
       </div>
       
       <div className="overflow-x-auto max-h-100" id="thee_tbl">
@@ -142,13 +176,13 @@ const dataId = data.id
                       <button
                         id={indx}
                         onClick={handleSave}
-                        className="text-green-600 hover:text-green-900"
+                        className="text-green-600 hover:text-green-900 cursor-pointer"
                       >
                         Save
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -157,13 +191,13 @@ const dataId = data.id
                     <div className="space-x-2">
                       <button
                         onClick={() => handleEdit(row, indx)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(row)}
-                        className="text-red-600 hover:text-red-900"
+                        onClick={() => handleDelete(indx, row)}
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
                       >
                         Delete
                       </button>

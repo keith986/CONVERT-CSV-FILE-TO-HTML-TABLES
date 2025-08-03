@@ -45,7 +45,6 @@ export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
 };
 
 export const fetchDataFromFirebase = async (id: string): Promise<void> => {
-  console.log(id)
   const q = doc(db, COLLECTION_NAME, id);
   const docSnap = await getDoc(q);
   if (docSnap.exists()) {
@@ -53,7 +52,7 @@ export const fetchDataFromFirebase = async (id: string): Promise<void> => {
   }
   return;
 
-  //await Promise.all(querySnapshot)
+  await Promise.all(docSnap)
 };
 
 export const deleteDataFromFirebase = async (id: string): Promise<void> => {
@@ -90,6 +89,32 @@ export const updateDataInFirebase = async ({dataId, editingData, recordIndex}: {
 }catch(error){
   console.log(error.message)
 }
-  await Promise.all()
+  await Promise.all(docSnap)
 };
 
+export const deleteRowDataFromFirebase = async ({dataId, recordIndex, deletingData} : {dataId: string, recordIndex : number, deletingData : any} ): Promise<void> => {
+   try{
+    
+  const docRef = doc(db, COLLECTION_NAME, dataId);
+  const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('Document does not exist');
+    }
+
+  const currentData = docSnap.data();
+  const records = currentData.records || [];
+
+   const updatedRecords = records.filter((_: any, idx: number) => idx !== recordIndex);
+
+    await updateDoc(docRef, {
+      records: updatedRecords
+    });
+
+  return {status: "green", message: "Data deleted successfully"};
+
+}catch(error){
+  console.log(error.message)
+}
+  await Promise.all(docSnap)
+};
