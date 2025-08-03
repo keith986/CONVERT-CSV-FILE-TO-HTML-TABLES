@@ -104,6 +104,11 @@ export const deleteRowDataFromFirebase = async ({dataId, recordIndex, deletingDa
 
   const currentData = docSnap.data();
   const records = currentData.records || [];
+  
+    if (recordIndex < 0 || recordIndex >= records.length) {
+      await deleteDoc(doc(db, COLLECTION_NAME, dataId));
+      window.location.reload()
+    }
 
    const updatedRecords = records.filter((_: any, idx: number) => idx !== recordIndex);
 

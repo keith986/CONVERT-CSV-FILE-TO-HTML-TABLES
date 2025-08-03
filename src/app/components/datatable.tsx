@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { updateDataInFirebase, deleteRowDataFromFirebase } from '../lib/firebaseoperation';
+import { updateDataInFirebase, deleteRowDataFromFirebase, deleteDataFromFirebase } from '../lib/firebaseoperation';
 import { toast } from 'react-toastify';
 
 interface DataTableProps {
@@ -20,7 +20,20 @@ const dataId = data.id
     );
   }
 
+  if(data.records === null || data.records === [] || data.records.length === 0){
+    const id = dataId;
+    deleteDataFromFirebase(id);
+    window.location.reload()
+  }
+  
   const headers = Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key));
+
+  if(headers.length === 0){
+    const id = dataId;
+    deleteDataFromFirebase(id);
+    window.location.reload()
+  }
+
 
   const handleEdit = (row, indx) => {
     setEditingId(row);
