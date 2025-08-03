@@ -53,7 +53,7 @@ const dataId = data.id
       })
         setEditingId(null);
         setEditingData({});
-        window.location.reload()
+        onRefresh?.()
       }else{
       toast.error("Could not update! Try again later.",{
       position: "top-right",
@@ -155,10 +155,10 @@ const dataId = data.id
           </thead>
           <tbody className="overflow-auto">
             {data.records.map((row, indx) => (
-              <tr key={indx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 text-white dark:text-white">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{indx + 1}</td>
+              <tr key={indx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-800">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-800">{indx + 1}</td>
                 {headers.map((header) => (
-                  <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-800">
                      {editingId === row ? (
                       <input
                         type="text"
