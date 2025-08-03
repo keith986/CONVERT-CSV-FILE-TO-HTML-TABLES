@@ -2,7 +2,12 @@ import React, {useState} from 'react';
 import { updateDataInFirebase, deleteRowDataFromFirebase } from '../lib/firebaseoperation';
 import { toast } from 'react-toastify';
 
-const datatable = ({ data }) => {
+interface DataTableProps {
+  data: any[]; 
+  onRefresh? : () => void;
+}
+
+const datatable = ({ data, onRefresh}) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
 const dataId = data.id
@@ -98,7 +103,7 @@ const dataId = data.id
       })
         setEditingId(null);
         setEditingData({});
-        window.location.reload()
+        onRefresh?.()
       }else{
       toast.error("Could not update! Try again later.",{
       position: "top-right",
@@ -111,8 +116,8 @@ const dataId = data.id
       theme: "light"
       })
       }
-    })
-    .catch((err) => {
+      })
+      .catch((err) => {
       toast.error(err.message,{
       position: "top-right",
       autoClose: 5000,
@@ -123,12 +128,11 @@ const dataId = data.id
       progress: undefined,
       theme: "light"
       })
-    })
-    
+      })   
   };
 
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg" style={{maxWidth: "1150px", width: "100%"}}>
+    <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl" style={{maxWidth: "1150px", width: "100%"}}>
       <div className="px-6 py-4 border-b">
         <h2 className="text-xl font-semibold">Data Table ({data.records.length} records)</h2>
       </div>

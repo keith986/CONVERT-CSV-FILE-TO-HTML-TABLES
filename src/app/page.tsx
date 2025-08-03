@@ -13,7 +13,8 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [isCollection, setIsCollection] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([])
+  const [isTable, setIsTable] = useState([]);
 
   const fetchDataFirebase = async () => {
     await fetchDataCollectionFromFirebase()
@@ -28,11 +29,11 @@ export default function Home() {
   }, [isCollection])
 
   const loadData = async (ev) => {  
-    const _idi = $('#_idi').text();
     $('#tbl').show('1000');
     $('#imp').hide('1000');
     try {
       setIsLoading(true);
+      setIsTable(ev.target.id);
       const fetchedData = await fetchDataFromFirebase(ev.target.id);
       setData({records : fetchedData.records, id : ev.target.id});
     } catch (error) {
@@ -93,6 +94,11 @@ export default function Home() {
     $('#imp').show('1000')
   }
 
+  const refreshing = async () => {
+    const fetchedData = await fetchDataFromFirebase(isTable.toString());
+    setData({records : fetchedData.records, id : isTable.toString()});
+  }
+
   return (
     <>
     <div className="px-20 flex">
@@ -121,7 +127,7 @@ export default function Home() {
          </li>
          {!!isCollection && isCollection.map((col, _id) => {
           return (
-         <li key={_id} id={col.id} onClick={loadData}>
+         <li key={_id} id={col.id} onClick={loadData} className={isTable === col.id ? "bg-gray-100 dark:bg-gray-700 rounded-lg" : ""}>
             <Link href="#" id={col.id} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group z-10">
                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                <path stroke="currentColor" strokeWidth="2" d="M3 11h18M3 15h18M8 10.792V19m4-8.208V19m4-8.208V19M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
@@ -183,7 +189,9 @@ export default function Home() {
                 <span className="ml-2">Loading data...</span>
               </div>
             ) : (
-              <DataTable data={data} />
+              <div id="ref">
+              <DataTable data={data} onRefresh={refreshing}/>
+              </div>
             )}
       </div>
 
