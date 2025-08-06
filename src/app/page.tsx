@@ -1,16 +1,17 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { parseCSV, convertToObjects } from './lib/csvutils.ts';
-import { uploadDataToFirebase, fetchDataCollectionFromFirebase,fetchDataFromFirebase,deleteDataFromFirebase } from './lib/firebaseoperation.ts';
+import { uploadDataToFirebase, fetchDataCollectionFromFirebase, fetchDataFromFirebase, deleteDataFromFirebase } from './lib/firebaseoperation.ts';
 import { toast } from 'react-toastify';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase.tsx';
 import Link from "next/link"
 import DataTable from './components/datatable';
+import Createnewtable from './components/create-new-table'
 import $ from 'jquery'
 
 export default function Home() {
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false)
   const [isCollection, setIsCollection] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState([])
@@ -31,6 +32,7 @@ export default function Home() {
   const loadData = async (ev) => {  
     $('#tbl').show('1000');
     $('#imp').hide('1000');
+    $('#c-n-t').hide('1000');
     try {
       setIsLoading(true);
       setIsTable(ev.target.id);
@@ -92,6 +94,13 @@ export default function Home() {
   const toggleDrop = () => {
     $('#tbl').hide('1000')
     $('#imp').show('1000')
+    $('#c-n-t').hide('1000')
+  }
+
+  const toggleDrop2 = () => {
+    $('#tbl').hide('1000')
+    $('#c-n-t').show('1000')
+    $('#imp').hide('1000')
   }
 
   const refreshing = async () => {
@@ -112,7 +121,7 @@ export default function Home() {
    <aside id="sidebar-multi-level-sidebar" className="relative z-40 w-64 h-100 h-max-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
    <div className="h-full px-3 py-4 overflow-y-auto backdrop-blur-sm bg-white/30 dark:bg-gray-800 rounded-lg">
       <ul className="space-y-2 font-medium">
-         <li>
+         <li onClick={toggleDrop2}>
             <a href="#" className="flex items-center p-2 text-white rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-800 group">
                <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15v3c0 .5523.44772 1 1 1h10.5M3 15v-4m0 4h11M3 11V6c0-.55228.44772-1 1-1h16c.5523 0 1 .44772 1 1v5M3 11h18m0 0v1M8 11v8m4-8v8m4-8v2m1 4h2m0 0h2m-2 0v2m0-2v-2"/> 
@@ -186,8 +195,7 @@ export default function Home() {
 </caption>
     </table>
     
-</div>
-      
+</div>     
       <div className='relative overflow-x-auto shadow-md sm:rounded-lg' id="tbl" style={{maxWidth: "1150px", width: "100%"}}>
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
@@ -200,6 +208,10 @@ export default function Home() {
               </div>
             )}
       </div>
+
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg mb-3 hidden" id="c-n-t">
+      <Createnewtable />
+      </div> 
 
       </div>
 
