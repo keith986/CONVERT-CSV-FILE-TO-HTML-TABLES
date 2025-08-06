@@ -35,7 +35,7 @@ export const uploadDataToFirebase = async (data: any[]): Promise<void> => {
 };
 
 export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
-  const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt"));
+  const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt","desc"));
   const qSnapshot = await getDocs(q);
 
    return qSnapshot.docs.map(doc => ({
