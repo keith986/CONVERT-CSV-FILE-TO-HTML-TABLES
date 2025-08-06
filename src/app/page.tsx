@@ -47,6 +47,7 @@ export default function Home() {
 
   const handleFileDelete = async(ev) => {
     await deleteDoc(doc(db , "csvData", ev.target.id));
+    window.location.reload();
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
