@@ -7,6 +7,7 @@ import {
   deleteDoc,
   updateDoc,
   orderBy,
+  query,
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase.tsx';
@@ -34,9 +35,9 @@ export const uploadDataToFirebase = async (data: any[]): Promise<void> => {
 };
 
 export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
-  const q = collection(db, COLLECTION_NAME);
+  const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt"));
   const qSnapshot = await getDocs(q);
-  
+
    return qSnapshot.docs.map(doc => ({
     id : doc.id
    }));
