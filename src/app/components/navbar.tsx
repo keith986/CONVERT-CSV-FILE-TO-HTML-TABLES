@@ -13,7 +13,7 @@ export default function Navbar() {
   <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1 rounded-4xl border border-gray-800 p-2 backdrop-blur-sm bg-white/30 dark:bg-gray-800">
     <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0">
       <li className="hover:scale-95 transition-all">
-        <a href="#" className="flex block py-2 px-3 md:p-0 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-white-700 md:dark:text-white-500 text-sm" aria-current="page">
+        <a href="/export-table" className="flex block py-2 px-3 md:p-0 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-white-700 md:dark:text-white-500 text-sm" aria-current="page">
           <svg className="w-5 h-5 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
           <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"/>
           </svg>

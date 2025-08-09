@@ -1,16 +1,19 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { updateDataInFirebase, deleteRowDataFromFirebase, deleteDataFromFirebase } from '../lib/firebaseoperation';
 import { toast } from 'react-toastify';
+import { FormulaHandler } from '../lib/formulahandler'
 
 interface DataTableProps {
   data: any[]; 
   onRefresh? : () => void;
 }
 
-const datatable = ({ data, onRefresh}) => {
+const datatable = ({ data, onRefresh}: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
-const dataId = data.id
+ const [formulaHandler, setFormulaHandler] = useState<FormulaHandler | null>(null);
+const dataId = data.id;
+
 
   if (data.length === 0) {
     return (
@@ -28,12 +31,39 @@ const dataId = data.id
   
   const headers = Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key));
 
+  useEffect(() => {
+    if (data?.records) {
+      setFormulaHandler(new FormulaHandler(data.records));
+    }
+  }, [data]);
+
+  const getCellValue = (row: any, header: string, rowIndex: number) => {
+  const value = row[header];
+  
+  // Handle automatic sum for cell ranges
+  if (typeof value === 'string' && value.startsWith('=')) {
+    if (formulaHandler) {
+      const result = formulaHandler.evaluateFormula(value, rowIndex);
+      // Format number results
+      if (typeof result === 'number') {
+        return result.toLocaleString(undefined, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        });
+      }
+      return result;
+    }
+    return '#NO_FORMULA_HANDLER';
+  }
+  
+   return value;
+  };
+
   if(headers.length === 0){
     const id = dataId;
     deleteDataFromFirebase(id);
     window.location.reload()
   }
-
 
   const handleEdit = (row, indx) => {
     setEditingId(row);
@@ -183,7 +213,7 @@ const dataId = data.id
                         className="w-full px-2 py-1 border rounded"
                       />
                     ) : (
-                      row[header]
+                      getCellValue(row, header, indx)
                     )}
                   </td>
                 ))}

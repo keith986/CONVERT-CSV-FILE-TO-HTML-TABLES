@@ -5,6 +5,7 @@ import { uploadDataToFirebase } from '../lib/firebaseoperation.ts';
 export default function TableCreator() {
   const [numColumns, setNumColumns] = useState('');
   const [headers, setHeaders] = useState([]);
+  const [formulas, setFormulas] = useState([]);
 
   // Handle column number change to generate header inputs
   const handleColumnsChange = (value) => {
@@ -16,9 +17,14 @@ export default function TableCreator() {
       const newHeaders = Array.from({ length: columnCount }, (_, index) => 
         headers[index] || `Column ${index + 1}`
       );
+      const newFormulas = Array.from({ length: columnCount }, (_, index) => 
+        formulas[index] || ''
+      );
       setHeaders(newHeaders);
+      setFormulas(newFormulas);
     } else {
       setHeaders([]);
+      setFormulas([]);
     }
   };
 
@@ -27,6 +33,46 @@ export default function TableCreator() {
     const newHeaders = [...headers];
     newHeaders[index] = value;
     setHeaders(newHeaders);
+  };
+
+  // Update specific formula
+  const updateFormula = (index, value) => {
+    const newFormulas = [...formulas];
+    newFormulas[index] = value;
+    setFormulas(newFormulas);
+  };
+
+  // Generate dummy data based on formula or default
+  const generateDummyData = (header, formula, index) => {
+    if (formula.trim()) {
+      // If there's a formula, return it as the dummy data
+      return formula;
+    }
+    
+    // Otherwise generate based on header name
+    const headerLower = header.toLowerCase();
+    
+    if (headerLower.includes('name') || headerLower.includes('user')) {
+      return 'John Doe';
+    } else if (headerLower.includes('email')) {
+      return 'john.doe@example.com';
+    } else if (headerLower.includes('age') || headerLower.includes('year')) {
+      return '25';
+    } else if (headerLower.includes('price') || headerLower.includes('cost') || headerLower.includes('amount')) {
+      return '$99.99';
+    } else if (headerLower.includes('date')) {
+      return new Date().toLocaleDateString();
+    } else if (headerLower.includes('phone')) {
+      return '+1 (555) 123-4567';
+    } else if (headerLower.includes('address')) {
+      return '123 Main St, City';
+    } else if (headerLower.includes('status')) {
+      return 'Active';
+    } else if (headerLower.includes('id') || headerLower.includes('number')) {
+      return Math.floor(Math.random() * 1000).toString();
+    } else {
+      return `Sample Data ${index + 1}`;
+    }
   };
 
   const createTable = async() => {
@@ -59,16 +105,16 @@ export default function TableCreator() {
       return;
     }
 
-    // Create dummy row with sample data
-    const dummyRow = headers.map((header, index) => `Sample Data ${index + 1}`);
+   // Create dummy row with sample data or formulas
+    const dummyRow = headers.map((header, index) => generateDummyData(header, formulas[index] || '', index));
 
-    // Create table data array with headers and dummy row
-    const tableDataArray = dummyRow.map(row => {
-    const obj: any = {};
-    headers.forEach((header, index) => {
-      obj[header] = row[index] || '';
-    });
-    return obj;
+    // Create table data array as objects with headers as keys
+    const tableDataArray = [dummyRow].map(row => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index] || '';
+      });
+      return obj;
     });
 
     await uploadDataToFirebase(tableDataArray)
@@ -105,6 +151,7 @@ export default function TableCreator() {
   const resetForm = () => {
     setNumColumns('');
     setHeaders([]);
+    setFormulas([]);
   };
 
   return (
@@ -135,22 +182,43 @@ export default function TableCreator() {
           {headers.length > 0 && (
             <>
               <caption className="p-2 text-lg font-semibold text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-                Column Headers
+                Column Headers & Formulas
               </caption>
               <caption className="p-2 text-lg text-center rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-4">
                   {headers.map((header, index) => (
-                    <div key={index} className="flex flex-col">
-                      <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                        Column {index + 1}
-                      </label>
-                      <input
-                        type="text"
-                        className="border rounded-lg outline-none text-center p-2"
-                        value={header}
-                        onChange={(e) => updateHeader(index, e.target.value)}
-                        placeholder={`Header ${index + 1}`}
-                      />
+                    <div key={index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Column {index + 1} Header
+                          </label>
+                          <input
+                            type="text"
+                            className="border rounded-lg outline-none text-center p-2"
+                            value={header}
+                            onChange={(e) => updateHeader(index, e.target.value)}
+                            placeholder={`Header ${index + 1}`}
+                          />
+                        </div>
+                        
+                        <div className="flex flex-col">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Formula (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            className="border rounded-lg outline-none text-center p-2"
+                            value={formulas[index] || ''}
+                            onChange={(e) => updateFormula(index, e.target.value)}
+                            placeholder="e.g., =SUM(A1:A10), =B1*C1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Preview: {generateDummyData(header, formulas[index] || '', index)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -181,3 +249,4 @@ export default function TableCreator() {
     </div>
   );
 }
+
