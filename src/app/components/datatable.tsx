@@ -11,7 +11,8 @@ const datatable = ({ data, onRefresh}: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
 const dataId = data.id;
-
+//pagination
+const [currentPage, setCurrentPage] = useState(1)
 
   if (data.length === 0) {
     return (
@@ -144,8 +145,22 @@ const dataId = data.id;
       })   
   };
 
+  const rowPage = 10;
+  const lastIndex = rowPage * currentPage;
+  const firstIndex = lastIndex - rowPage;
+  const tbl_records = data.records.slice(firstIndex , lastIndex);
+  const nPage = Math.ceil(data.records.length / rowPage);
+  const numbers = [...Array(nPage + 1).keys()].slice(1)
+
+  function handlePage (id) {
+   setCurrentPage(id)
+}
+
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl" style={{maxWidth: "1150px", width: "100%"}}>
+    <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
+      {/*
+      style={{maxWidth: "1150px", width: "100%"}}
+      */}
       <div className="px-6 py-4 border-b">
         <h2 className="text-xl font-semibold">Data Table ({data.records.length} records)</h2>
       </div>
@@ -164,10 +179,10 @@ const dataId = data.id;
                 </th>
               ))}
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
-            </tr>
+            </tr> 
           </thead>
           <tbody className="overflow-auto">
-            {data.records.map((row, indx) => (
+            {tbl_records.map((row, indx) => (
               <tr key={indx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-800">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-800">{indx + 1}</td>
                 {headers.map((header) => (
@@ -226,6 +241,23 @@ const dataId = data.id;
           </tbody>
         </table>
       </div>
+
+      <div className='text-white flex w-full overflow-auto mt-3'>
+      <nav className='flex'>
+        <ul className='flex max-w-100'>
+
+          {!!numbers && numbers.map((n, i) => {
+            return (
+              <li key={i}>
+                  <button className={`${currentPage === n ? 'bg-red-600 text-white' : 'bg-white'} m-1 px-1 text-gray-800 dark:text-gray-800 rounded cursor-pointer hover:scale-85`} onClick={() => handlePage(n)}>{n}</button>
+                </li>
+                   );
+          })}
+
+        </ul>
+      </nav> 
+        </div>
+
     </div>
   );
 };

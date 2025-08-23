@@ -144,8 +144,8 @@ export default function Home() {
         <ul className="overflow-y-auto h-[200px]">
          {!!isCollection && isCollection.map((col, _id) => {
           return (
-         <li key={_id} id={col.id} onClick={loadData} className={isTable === col.id ? "bg-gray-100 dark:bg-gray-700 rounded-lg" : ""}>
-            <Link href={'#/my-table/'+ col.id} id={col.id} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group z-10">
+         <li key={_id} id={col.id} onClick={loadData} className={isTable === col.id ? "bg-gray-600 dark:bg-gray-700  rounded-lg" : ""}>
+            <Link href={'#/my-table/'+ col.id} id={col.id} className="flex items-center p-2 text-gray-900 rounded-lg text-white hover:text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group z-10">
                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                <path stroke="currentColor" strokeWidth="2" d="M3 11h18M3 15h18M8 10.792V19m4-8.208V19m4-8.208V19M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/>
                </svg>

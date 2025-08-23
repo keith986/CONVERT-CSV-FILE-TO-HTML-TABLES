@@ -13,6 +13,8 @@ export default function Home() {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
+  //pagination
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchTables();
@@ -46,23 +48,68 @@ export default function Home() {
   };
 
   const handleDownload = async (format: 'excel' | 'csv') => {
-    if (!selectedTable) return;
-    
     try {
-      const response = await fetch(`/api/tables/${selectedTable}/download?format=${format}`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `table.${format === 'excel' ? 'xlsx' : 'csv'}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      // Get the specific table element with id "table-prnt"
+      const tableElement = document.getElementById('table-prnt');
+      
+      if (!tableElement) {
+      console.error('Table not found');
+      return;
+      }
+
+      // Extract table data from the displayed table
+      const rows = tableElement.querySelectorAll('tr');
+      const tableData = [];
+    
+      rows.forEach(row => {
+      const cells = row.querySelectorAll('th, td');
+      const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+      tableData.push(rowData);
+      });
+
+      // Convert to the requested format
+      let content, mimeType, fileExtension;
+
+      if (format === 'csv') {
+      content = tableData.map(row => 
+        row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+      mimeType = 'text/csv';
+      fileExtension = 'csv';
+      } else if (format === 'excel') {
+      // For Excel, we'll use CSV format with Excel mime type
+      content = tableData.map(row => 
+        row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+      mimeType = 'application/vnd.ms-excel';
+      fileExtension = 'csv'; // or 'xls' if you prefer
+      }
+
+      // Create and download the file
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `table.${fileExtension}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
     }
   };
+
+  const rowPerPage = 5;
+  const lastIndex = rowPerPage * currentPage;
+  const firstIndex = lastIndex - rowPerPage;
+  const records = tables.slice(firstIndex, lastIndex)
+  const nPage = Math.ceil(tables.length / rowPerPage)
+  const numbers = [...Array(nPage + 1).keys()].slice(1)
+
+function handlePage (id) {
+   setCurrentPage(id)
+}
 
   return (
     <>
@@ -75,14 +122,16 @@ export default function Home() {
             </caption>
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
+                <th scope="col" className="px-6 py-3">No.</th>
                 <th scope="col" className="px-6 py-3">Table Name</th>
                 <th scope="col" className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {!!tables && tables.map((table) => {
+              {!!records && records.map((table,index) => {
                 return (
                 <tr key={table.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                  <td className="px-6 py-4">{index + 1}.</td>
                   <td className="px-6 py-4">{table.id}</td>
                   <td className="px-6 py-4">
                     <button
@@ -97,6 +146,23 @@ export default function Home() {
               })}
             </tbody>
             </table>
+
+             <div className='row text-white flex  w-full overflow-auto mt-3'>
+      <nav className='flex'>
+        <ul className='flex max-w-100'>
+
+          {!!numbers && numbers.map((n, i) => {
+            return (
+              <li key={i}>
+                  <button className={`${currentPage === n ? 'bg-red-600 text-white' : 'bg-white'} mx-1 px-1 text-gray-800 dark:text-gray-800 rounded cursor-pointer hover:scale-85`} onClick={() => handlePage(n)}>{n}</button>
+                </li>
+                   );
+          })}
+
+        </ul>
+      </nav> 
+        </div>
+
         </div>
 
         {loading && (
@@ -106,12 +172,13 @@ export default function Home() {
         {previewData && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Preview</h3>
-            <div className="overflow-x-auto shadow-md sm:rounded-lg mb-4">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <div className="overflow-x-auto shadow-md sm:rounded-lg mb-4 max-h-100">
+              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400" id='table-prnt'>
                 <thead>
                   {previewData[0] && (
                     <tr>
-                      {Object.keys(previewData[0]).map((key) => (
+                      <th className="px-6 py-3 bg-gray-50 dark:bg-gray-700">No.</th>
+                      {Object.keys(previewData[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key)).map((key) => (
                         <th key={key} className="px-6 py-3 bg-gray-50 dark:bg-gray-700">{key}</th>
                       ))}
                     </tr>
@@ -120,8 +187,11 @@ export default function Home() {
                 <tbody>
                     {previewData.map((row, index) => (
                     <tr key={index} className="bg-white border-b dark:bg-gray-800">
-                      {Object.values(row).map((value: any, i) => (
-                        <td key={i} className="px-6 py-4">{String(value)}</td>
+                      <td className="px-6 py-4">{index + 1}</td>
+                      {Object.keys(row)
+                        .filter(key => !['id', 'createdAt', 'updatedAt'].includes(key))
+                        .map((key) => (
+                          <td key={key} className="px-6 py-4">{String(row[key])}</td>
                       ))}
                     </tr>
                   ))}
