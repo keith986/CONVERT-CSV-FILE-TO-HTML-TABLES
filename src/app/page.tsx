@@ -15,7 +15,8 @@ export default function Home() {
   const [isCollection, setIsCollection] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState([])
-  const [isTable, setIsTable] = useState([]);
+  const [isTable, setIsTable] = useState([])
+  const [isDragging, setIsDragging] = useState(false)
 
   const fetchDataFirebase = async () => {
     await fetchDataCollectionFromFirebase()
@@ -50,21 +51,52 @@ export default function Home() {
     window.location.reload();
   }
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return; 
-    try {
-      if(file.type === 'text/csv'){
+  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setIsDragging(true);
+};
+
+  const handleDragLeave = (event: React.DragEvent<HTMLLabelElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setIsDragging(false);
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLLabelElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setIsDragging(false);
+  
+  const file = event.dataTransfer.files?.[0];
+  if (!file) return;
+
+  await processFile(file);
+  };
+
+const processFile = async (file: File) => {
+  try {
+    if (file.type === 'text/csv') {
       const csvData = await parseCSV(file);
       const objects = convertToObjects(csvData);
       await uploadDataToFirebase(objects);
-      setTimeout(()=>{
+      setTimeout(() => {
         setIsUploading(true);
-        event.target.value = '';
-      },1000)
-      }else{
-      event.target.value = '';
-      toast.error('Upload failed. Please check your CSV format.',{
+      }, 1000);
+    } else {
+      toast.error('Upload failed. Please check your CSV format.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light"
+      });
+    }
+  } catch (error) {
+    toast.error('Upload failed:' + error.message, {
       position: "top-right",
       autoClose: 5000,
       hideProgressBar: false,
@@ -73,24 +105,18 @@ export default function Home() {
       draggable: true,
       progress: undefined,
       theme: "light"
-      });  
-      } 
-      //Reset file input
-    }catch(error){
-      toast.error('Upload failed:' + error.message,{
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: false, 
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light"
-      })
-    }finally{
-      setIsUploading(false);
-    }
-  };
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
+
+const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  await processFile(file);
+  event.target.value = '';
+};
 
   const toggleDrop = () => {
     $('#tbl').hide('1000')
@@ -176,8 +202,14 @@ export default function Home() {
     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">       
 <div className="flex items-center justify-center w-full">
-    <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-      
+    <label 
+    className={`flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 ${
+        isDragging ? 'border-blue-500 bg-blue-50 dark:bg-gray-600' : ''
+    }`}
+    onDragOver={handleDragOver}
+    onDragLeave={handleDragLeave}
+    onDrop={handleDrop}
+    >
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
