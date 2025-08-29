@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { updateDataInFirebase, deleteRowDataFromFirebase, deleteDataFromFirebase } from '../lib/firebaseoperation';
+import { updateDataInFirebase, deleteRowDataFromFirebase, deleteDataFromFirebase, deleteTable } from '../lib/firebaseoperation';
 import { toast } from 'react-toastify';
 
 interface DataTableProps {
@@ -10,6 +10,8 @@ interface DataTableProps {
 const datatable = ({ data, onRefresh}: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
+const [isAddingRow, setIsAddingRow] = useState(false);
+const [newRowData, setNewRowData] = useState<any>({});
 const dataId = data.id;
 //pagination
 const [currentPage, setCurrentPage] = useState(1)
@@ -145,6 +147,49 @@ const [currentPage, setCurrentPage] = useState(1)
       })   
   };
 
+  const handleDeleteTable = async () => {
+    if (!confirm('Are you sure you want to delete table?')) return; 
+      await deleteTable({dataId: dataId})
+      .then(res => {
+      if(res.status === "green"){
+      toast.success(res.message,{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+        window.location.reload();
+      }else{
+      toast.error("Could not update! Try again later.",{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+      }
+      })
+      .catch((err) => {
+      toast.error(err.message,{
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+      })
+      }) 
+  }
+
   const rowPage = 10;
   const lastIndex = rowPage * currentPage;
   const firstIndex = lastIndex - rowPage;
@@ -154,17 +199,101 @@ const [currentPage, setCurrentPage] = useState(1)
 
   function handlePage (id) {
    setCurrentPage(id)
-}
+  }
+
+  // Add after other handler functions
+const handleAddRow = () => {
+  setIsAddingRow(true);
+  const emptyRow = {};
+  headers.forEach(header => {
+    emptyRow[header] = '';
+  });
+  setNewRowData(emptyRow);
+};
+
+const handleSaveNewRow = async () => {
+  // Assuming you'll add a new Firebase function to handle this
+  await updateDataInFirebase({
+    dataId: dataId,
+    editingData: newRowData,
+    recordIndex: data.records.length // Add to end of records
+  })
+  .then(res => {
+    if(res.status === "green"){
+      toast.success("Row added successfully!");
+      setIsAddingRow(false);
+      setNewRowData({});
+      onRefresh?.();
+    }
+  })
+  .catch(err => {
+    toast.error("Failed to add row: " + err.message);
+  });
+};
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
       {/*
       style={{maxWidth: "1150px", width: "100%"}}
       */}
-      <div className="px-6 py-4 border-b">
-        <h2 className="text-xl font-semibold">Data Table ({data.records.length} records)</h2>
+
+<div className="px-6 py-4 flex justify-between items-center">
+  <h2 className="text-xl font-semibold">Data Table ({data.records.length} records)</h2>
+  <div>
+  <button 
+    onClick={handleAddRow}
+    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mx-3 cursor-pointer rounded"
+  >
+    Add Row
+  </button>
+  <button 
+    onClick={handleDeleteTable}
+    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-3 rounded cursor-pointer"
+  >
+    Delete Table
+  </button>
+  </div>
+</div>
+
+<div className="w-full">
+{isAddingRow && (
+  <tr className="bg-transparent w-full">
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">New</td>
+    {headers.map((header) => (
+      <td key={header} className="px-6 py-4 whitespace-nowrap text-sm">
+        <input
+          type="text"
+          value={newRowData[header] || ''}
+          onChange={(e) => setNewRowData({
+            ...newRowData,
+            [header]: e.target.value
+          })}
+          className="w-full px-2 py-1 border rounded"
+        />
+      </td>
+    ))}
+    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+      <div className="space-x-2">
+        <button
+          onClick={handleSaveNewRow}
+          className="text-green-600 hover:text-green-900 cursor-pointer"
+        >
+          Save
+        </button>
+        <button
+          onClick={() => {
+            setIsAddingRow(false);
+            setNewRowData({});
+          }}
+          className="text-red-600 hover:text-red-900 cursor-pointer"
+        >
+          Cancel
+        </button>
       </div>
-      
+    </td>
+  </tr>
+)}
+</div>
       <div className="overflow-x-auto max-h-100" id="thee_tbl">
         <table className="table-auto w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -184,9 +313,9 @@ const [currentPage, setCurrentPage] = useState(1)
           <tbody className="overflow-auto">
             {tbl_records.map((row, indx) => (
               <tr key={indx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-800">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-800">{indx + 1}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-100">{indx + 1}</td>
                 {headers.map((header) => (
-                  <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-800">
+                  <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-100">
                      {editingId === row ? (
                       <input
                         type="text"

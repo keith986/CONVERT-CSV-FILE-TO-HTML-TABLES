@@ -124,3 +124,49 @@ export const deleteRowDataFromFirebase = async ({dataId, recordIndex, deletingDa
 }
   await Promise.all(docSnap)
 };
+
+
+export const addNewRowToFirebase = async ({dataId, newRowData}: {dataId: string, newRowData: any}): Promise<void> => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, dataId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('Document does not exist');
+    }
+
+    const currentData = docSnap.data();
+    const records = currentData.records || [];
+
+    // Add timestamp to new row
+    const newRecord = {
+      ...newRowData,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+
+    // Append new row to records array
+    const updatedRecords = [...records, newRecord];
+
+    await updateDoc(docRef, {
+      records: updatedRecords,
+      updatedAt: Timestamp.now()
+    });
+
+    return {status: "green", message: "New row added successfully"};
+
+  } catch(error) {
+    console.log(error.message);
+    return {status: "red", message: error.message};
+  }
+};
+
+export const deleteTable = async ({dataId}:{dataId: string}): Promise<void> => {
+  try{
+  await deleteDoc(doc(db , "csvData", dataId));
+    return {status: "green", message: "Table Deleted successfully"};
+  }catch(error){
+    return {status:"red", message: error.message};
+  }  
+    
+}
