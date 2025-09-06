@@ -143,9 +143,9 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 
   return (
     <>
-    <div className="px-20 flex">
+    <div className="flex">
       <div>
-   <aside id="sidebar-multi-level-sidebar" className="relative z-40 w-64 h-100 h-max-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+   <aside id="sidebar-multi-level-sidebar" className="relative z-40 w-64 h-100 h-max-screen transition-transform -translate-x-full sm:translate-x-0 mx-2" aria-label="Sidebar">
    <div className="h-full px-3 py-4 backdrop-blur-sm bg-white/30 dark:bg-gray-800 rounded-lg">
       <ul className="space-y-2 font-medium">
          <li onClick={toggleDrop2}>
@@ -200,7 +200,7 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     </table>
 
     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-        <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">       
+<caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">       
 <div className="flex items-center justify-center w-full">
     <label 
     className={`flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 ${
