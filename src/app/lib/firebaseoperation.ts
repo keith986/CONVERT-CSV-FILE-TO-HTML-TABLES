@@ -42,7 +42,6 @@ export const fetchDataCollectionFromFirebase = async (): Promise<void> => {
     id : doc.id
    }));
 
- await Promise.all(qSnapshot)
 };
 
 export const fetchDataFromFirebase = async (id: string): Promise<void> => {
@@ -163,10 +162,26 @@ export const addNewRowToFirebase = async ({dataId, newRowData}: {dataId: string,
 
 export const deleteTable = async ({dataId}:{dataId: string}): Promise<void> => {
   try{
-  await deleteDoc(doc(db , "csvData", dataId));
+  await deleteDoc(doc(db , COLLECTION_NAME, dataId));
     return {status: "green", message: "Table Deleted successfully"};
   }catch(error){
     return {status:"red", message: error.message};
   }  
     
 }
+
+export const deleteAllTables = async (): Promise<void> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    
+    const deletePromises = querySnapshot.docs.map(doc => 
+      deleteDoc(doc.ref)
+    );
+
+    await Promise.all(deletePromises);
+    
+    return {status: "green", message: "All tables deleted successfully"};
+  } catch (error) {
+    return {status: "red", message: error.message};
+  }
+};

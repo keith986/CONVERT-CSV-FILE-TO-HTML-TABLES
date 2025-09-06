@@ -15,6 +15,9 @@ const [newRowData, setNewRowData] = useState<any>({});
 const dataId = data.id;
 //pagination
 const [currentPage, setCurrentPage] = useState(1)
+// Drag state
+const [draggedColumn, setDraggedColumn] = useState(null);
+const [dragOverColumn, setDragOverColumn] = useState(null);
 
   if (data.length === 0) {
     return (
@@ -30,7 +33,8 @@ const [currentPage, setCurrentPage] = useState(1)
     window.location.reload()
   }
   
-  const headers = Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key));
+const headers = Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key));
+const [columnOrder, setColumnOrder] = useState(Object.keys(data.records[0]).filter(key => !['id', 'createdAt', 'updatedAt'].includes(key)));
 
   if(headers.length === 0){
     const id = dataId;
@@ -231,6 +235,52 @@ const handleSaveNewRow = async () => {
   });
 };
 
+  // Handle drag start
+  const handleDragStart = (e, columnKey) => {
+    setDraggedColumn(columnKey);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target);
+  };
+
+  // Handle drag over
+  const handleDragOver = (e, columnKey) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverColumn(columnKey);
+  };
+
+  // Handle drag leave
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  // Handle drop
+  const handleDrop = (e, targetColumnKey) => {
+    e.preventDefault();
+    
+    if (draggedColumn && draggedColumn !== targetColumnKey) {
+      const newColumnOrder = [...columnOrder];
+      const draggedIndex = newColumnOrder.indexOf(draggedColumn);
+      const targetIndex = newColumnOrder.indexOf(targetColumnKey);
+      
+      // Remove dragged column from its current position
+      newColumnOrder.splice(draggedIndex, 1);
+      // Insert it at the target position
+      newColumnOrder.splice(targetIndex, 0, draggedColumn);
+      
+      setColumnOrder(newColumnOrder);
+    }
+    
+    setDraggedColumn(null);
+    setDragOverColumn(null);
+  };
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setDraggedColumn(null);
+    setDragOverColumn(null);
+  };
+
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
       {/*
@@ -299,11 +349,21 @@ const handleSaveNewRow = async () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Id</th>
-              {headers.map((header) => (
+              {columnOrder.map((header) => (
                 <th
                   key={header}
-                  className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, header)}
+                  onDragOver={(e) => handleDragOver(e, header)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, header)}
+                  onDragEnd={handleDragEnd}
+                  className={`px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-all-scroll
+                  ${draggedColumn === header ? 'opacity-50 bg-blue-100' : ''}
+                  ${dragOverColumn === header && draggedColumn !== header ? 'bg-blue-50 border-l-4 border-blue-500' : ''}
+                  `}
                 >
+                  <span className="mx-2">⋮⋮</span>
                   {header}
                 </th>
               ))}
@@ -314,7 +374,7 @@ const handleSaveNewRow = async () => {
             {tbl_records.map((row, indx) => (
               <tr key={indx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-800">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-100">{indx + 1}</td>
-                {headers.map((header) => (
+                {columnOrder.map((header) => (
                   <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-100">
                      {editingId === row ? (
                       <input
