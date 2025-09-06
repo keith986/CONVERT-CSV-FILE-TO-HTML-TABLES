@@ -145,7 +145,7 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     <>
     <div className="flex">
       <div>
-   <aside id="sidebar-multi-level-sidebar" className="relative z-40 w-64 h-100 h-max-screen transition-transform -translate-x-full sm:translate-x-0 mx-2" aria-label="Sidebar">
+    <aside id="sidebar-multi-level-sidebar" className="relative z-40 w-64 h-100 h-max-screen transition-transform -translate-x-full sm:translate-x-0 mx-2" aria-label="Sidebar">
    <div className="h-full px-3 py-4 backdrop-blur-sm bg-white/30 dark:bg-gray-800 rounded-lg">
       <ul className="space-y-2 font-medium">
          <li onClick={toggleDrop2}>
@@ -187,7 +187,7 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         </ul>
       </ul>
    </div>
-   </aside>
+    </aside>
       </div>
       <div className="w-full mx-6">
 <div className="relative overflow-x-auto shadow-md sm:rounded-lg mb-3 hidden" id="imp">
@@ -249,7 +249,6 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       </div> 
 
       </div>
-
     </div>
     </>
   );
