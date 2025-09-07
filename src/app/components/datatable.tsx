@@ -357,11 +357,18 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const parsedValue = parseValue(value);
   
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsOpen(!isOpen);
+  };
   
-  const handleItemClick = (item, key, type) => {
+  const handleItemClick = (item, key, type, e) => {
+    e.stopPropagation();
+    e.preventDefault();
     onItemClick(item, key, type);
     setIsOpen(false); // Close dropdown after selection
+    
   };
 
   if (Array.isArray(parsedValue)) {
@@ -436,7 +443,7 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
             {entries.map(([key, val], index) => (
               <button
                 key={index}
-                onClick={() => handleItemClick(val, key, 'object')}
+                onClick={() => handleItemClick(item, index, 'array')}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
               >
                 <span className="font-medium text-green-600">{key}:</span>{' '}
@@ -616,7 +623,7 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
                   editingId, 
                   editingData, 
                   setEditingData
-                )
+                  )
                 )}
                   </td>
                 ))}
