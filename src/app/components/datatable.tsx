@@ -309,7 +309,7 @@ const handleDeleteColumn = async (columnName: string) => {
   })
   .then(res => {
     if(res.status === "green") {
-      toast.success(`Column "${columnName}" deleted successfully`);
+      toast.success(res.message);
       onRefresh?.();
     } else {
       toast.error("Could not delete column. Try again later.");

@@ -50,9 +50,8 @@ export const fetchDataFromFirebase = async (id: string): Promise<void> => {
   if (docSnap.exists()) {
   return docSnap.data();
   }
+  await Promise.all(docSnap);
   return;
-
-  await Promise.all(docSnap)
 };
 
 export const deleteDataFromFirebase = async (id: string): Promise<void> => {
