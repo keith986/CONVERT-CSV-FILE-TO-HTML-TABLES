@@ -357,15 +357,11 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const parsedValue = parseValue(value);
   
-  const toggleDropdown = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsOpen(!isOpen);
+  const toggleDropdown = () => {
+    setIsOpen(prev => !prev);
   };
   
-  const handleItemClick = (item, key, type, e) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleItemClick = (item, key, type) => {
     onItemClick(item, key, type);
     setIsOpen(false); // Close dropdown after selection
     
@@ -377,6 +373,7 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
     return (
       <div className="relative inline-block">
         <button
+         type="button"
           onClick={toggleDropdown}
           className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors flex items-center gap-1"
         >
@@ -395,6 +392,7 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
           <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
             {parsedValue.map((item, index) => (
               <button
+                type="button"
                 key={index}
                 onClick={() => handleItemClick(item, index, 'array')}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
@@ -424,6 +422,7 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
     return (
       <div className="relative inline-block">
         <button
+          type="button"
           onClick={toggleDropdown}
           className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors flex items-center gap-1"
         >
@@ -442,8 +441,9 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
           <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
             {entries.map(([key, val], index) => (
               <button
+                type=" button"
                 key={index}
-                onClick={() => handleItemClick(item, index, 'array')}
+                onClick={(e) => handleItemClick( key, val, 'object', e)}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
               >
                 <span className="font-medium text-green-600">{key}:</span>{' '}
