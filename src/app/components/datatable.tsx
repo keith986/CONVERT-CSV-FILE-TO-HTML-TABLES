@@ -7,6 +7,7 @@ interface DataTableProps {
   onRefresh? : () => void;
 }
 
+
 const datatable = ({ data, onRefresh}: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
@@ -299,8 +300,6 @@ const handleDeleteColumn = async (columnName: string) => {
     return newRecord;
   });
 
-  console.log(updatedRecords)
-
   // Update the data in Firebase
   await updateDataInFirebase({
     dataId: dataId,
@@ -319,6 +318,177 @@ const handleDeleteColumn = async (columnName: string) => {
     toast.error(err.message);
   });
   };
+
+  // Function to check if a value is an array or object
+const isArrayOrObject = (value) => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return (trimmed.startsWith('[') && trimmed.endsWith(']')) || 
+           (trimmed.startsWith('{') && trimmed.endsWith('}'));
+  }
+  return Array.isArray(value) || (typeof value === 'object' && value !== null);
+};
+
+// Function to parse string representation of arrays/objects
+const parseValue = (value) => {
+  if (typeof value === 'string') {
+    try {
+      // Handle empty objects/arrays
+      if (value.trim() === '{}' || value.trim() === '[]') {
+        return JSON.parse(value.trim());
+      }
+      
+      // Try to parse as JSON first
+      return JSON.parse(value);
+    } catch (e) {
+      // If JSON parsing fails, try to evaluate as JavaScript (be careful with this in production)
+      try {
+        return eval(`(${value})`);
+      } catch (evalError) {
+        return value; // Return original if parsing fails
+      }
+    }
+  }
+  return value;
+};
+
+// Dropdown component for arrays/objects
+const ArrayObjectDropdown = ({ value, onItemClick }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const parsedValue = parseValue(value);
+  
+  const toggleDropdown = () => setIsOpen(!isOpen);
+  
+  const handleItemClick = (item, key, type) => {
+    onItemClick(item, key, type);
+    setIsOpen(false); // Close dropdown after selection
+  };
+
+  if (Array.isArray(parsedValue)) {
+    const displayText = parsedValue.length === 0 ? 'Empty' : `View`;
+    
+    return (
+      <div className="relative inline-block">
+        <button
+          onClick={toggleDropdown}
+          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors flex items-center gap-1"
+        >
+          {displayText}
+          <svg 
+            className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {isOpen && parsedValue.length > 0 && (
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+            {parsedValue.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleItemClick(item, index, 'array')}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+              >
+                <span className="font-medium text-blue-600">{key}:</span>{' '}
+                <span className="text-gray-700">
+                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {isOpen && parsedValue.length === 0 && (
+          <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+            <div className="px-3 py-2 text-xs text-gray-500">No items</div>
+          </div>
+        )}
+      </div>
+    );
+  } 
+  
+  else if (typeof parsedValue === 'object' && parsedValue !== null) {
+    const entries = Object.entries(parsedValue);
+    const displayText = entries.length === 0 ? 'Empty' : `View`;
+    
+    return (
+      <div className="relative inline-block">
+        <button
+          onClick={toggleDropdown}
+          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors flex items-center gap-1"
+        >
+          {displayText}
+          <svg 
+            className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {isOpen && entries.length > 0 && (
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+            {entries.map(([key, val], index) => (
+              <button
+                key={index}
+                onClick={() => handleItemClick(val, key, 'object')}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+              >
+                <span className="font-medium text-green-600">{key}:</span>{' '}
+                <span className="text-gray-700">
+                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {isOpen && entries.length === 0 && (
+          <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+            <div className="px-3 py-2 text-xs text-gray-500">No properties</div>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  return value; // Return original value if not array/object
+};
+
+// Function to render array/object as dropdown
+const renderAsDropdown = (value, onItemClick) => {
+  return <ArrayObjectDropdown value={value} onItemClick={onItemClick} />;
+};
+
+// Modified table cell renderer
+const renderCell = (value, header, row, editingId, editingData, setEditingData, onDropdownItemClick) => {
+  if (isArrayOrObject(value)) {
+    return renderAsDropdown(value, onDropdownItemClick);
+  }
+  
+  // For editing functionality
+  if (editingId === row.id) {
+    return (
+      <input
+        type="text"
+        value={editingData[header] || ''}
+        onChange={(e) => setEditingData({
+          ...editingData,
+          [header]: e.target.value
+        })}
+        className="w-full px-2 py-1 border rounded"
+      />
+    );
+  }
+  
+  return value;
+};
+
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
@@ -438,9 +608,16 @@ const handleDeleteColumn = async (columnName: string) => {
                         })}
                         className="w-full px-2 py-1 border rounded"
                       />
-                    ) : (
-                      row[header]
-                    )}
+                    ):(
+                  renderCell(
+                  row[header], 
+                  header, 
+                  row, 
+                  editingId, 
+                  editingData, 
+                  setEditingData
+                )
+                )}
                   </td>
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
