@@ -8,7 +8,7 @@ interface DataTableProps {
 }
 
 
-const datatable = ({ data, onRefresh}: DataTableProps) => {
+const datatable = ({ data, onRefresh }: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
 const [isAddingRow, setIsAddingRow] = useState(false);
@@ -625,7 +625,7 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
                   setEditingData
                   )
                 )}
-                  </td>
+                </td>
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {editingId === row ? (

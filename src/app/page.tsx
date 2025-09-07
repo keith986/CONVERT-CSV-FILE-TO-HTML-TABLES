@@ -239,7 +239,7 @@ const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
               </div>
             ) : (
               <div id="ref">
-              <DataTable data={data} onRefresh={refreshing}/>
+              <DataTable data={data} onRefresh={refreshing} />
               </div>
             )}
       </div>
