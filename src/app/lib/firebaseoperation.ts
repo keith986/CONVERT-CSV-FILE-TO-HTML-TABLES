@@ -70,6 +70,17 @@ export const updateDataInFirebase = async ({dataId, editingData, recordIndex}: {
     }
 
   const currentData = docSnap.data();
+
+  // Handle full table update for column deletion
+    if (recordIndex === -1) {
+      await updateDoc(docRef, {
+        records: editingData,
+        updatedAt: Timestamp.now()
+      });
+      return {status: "green", message: "Table structure updated successfully"};
+    }
+  
+  // Handle single record update
   const records = currentData.records || [];
 
   const updatedRecord = {

@@ -281,6 +281,45 @@ const handleSaveNewRow = async () => {
     setDragOverColumn(null);
   };
 
+  // Add this after your other state declarations
+const [showDeleteColumn, setShowDeleteColumn] = useState<string | null>(null);
+
+// Add this with your other handler functions
+const handleDeleteColumn = async (columnName: string) => {
+  if (!confirm(`Are you sure you want to delete column "${columnName}"?`)) return;
+
+  // Remove column from column order
+  const newColumnOrder = columnOrder.filter(col => col !== columnName);
+  setColumnOrder(newColumnOrder);
+
+  // Remove column data from all records
+  const updatedRecords = data.records.map(record => {
+    const newRecord = {...record};
+    delete newRecord[columnName];
+    return newRecord;
+  });
+
+  console.log(updatedRecords)
+
+  // Update the data in Firebase
+  await updateDataInFirebase({
+    dataId: dataId,
+    editingData: updatedRecords,
+    recordIndex: -1 // Use -1 to indicate whole table update
+  })
+  .then(res => {
+    if(res.status === "green") {
+      toast.success(`Column "${columnName}" deleted successfully`);
+      onRefresh?.();
+    } else {
+      toast.error("Could not delete column. Try again later.");
+    }
+  })
+  .catch(err => {
+    toast.error(err.message);
+  });
+  };
+
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
       {/*
@@ -358,6 +397,8 @@ const handleSaveNewRow = async () => {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, header)}
                   onDragEnd={handleDragEnd}
+                  onMouseEnter={() => setShowDeleteColumn(header)}
+                  onMouseLeave={() => setShowDeleteColumn(null)}
                   className={`px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-all-scroll
                   ${draggedColumn === header ? 'opacity-50 bg-blue-100' : ''}
                   ${dragOverColumn === header && draggedColumn !== header ? 'bg-blue-50 border-l-4 border-blue-500' : ''}
@@ -365,6 +406,17 @@ const handleSaveNewRow = async () => {
                 >
                   <span className="mx-2">⋮⋮</span>
                   {header}
+                  {showDeleteColumn === header && (
+                  <button
+                  onClick={() => handleDeleteColumn(header)}
+                  className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"
+                  title="Delete column"
+                  >
+                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5v14m-6-8h6m-6 4h6m4.506-1.494L15.012 12m0 0 1.506-1.506M15.012 12l1.506 1.506M15.012 12l-1.506-1.506M20 19H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1Z"/>
+                  </svg>
+                  </button>
+                  )}
                 </th>
               ))}
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
