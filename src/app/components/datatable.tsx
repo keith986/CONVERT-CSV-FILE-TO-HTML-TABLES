@@ -19,6 +19,7 @@ const [currentPage, setCurrentPage] = useState(1)
 // Drag state
 const [draggedColumn, setDraggedColumn] = useState(null);
 const [dragOverColumn, setDragOverColumn] = useState(null);
+const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
 
   if (data.length === 0) {
     return (
@@ -352,7 +353,7 @@ const parseValue = (value) => {
   return value;
 };
 
-// Dropdown component for arrays/objects
+/* Dropdown component for arrays/objects
 const ArrayObjectDropdown = ({ value, onItemClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const parsedValue = parseValue(value);
@@ -465,6 +466,131 @@ const ArrayObjectDropdown = ({ value, onItemClick }) => {
   }
   
   return value; // Return original value if not array/object
+};*/
+
+const ArrayObjectDropdown = ({ value, onItemClick, rowIndex, columnName }) => {
+  const dropdownKey = `${rowIndex}-${columnName}`;
+  const isOpen = openDropdowns[dropdownKey] || false;
+  
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [dropdownKey]: !prev[dropdownKey]
+    }));
+  };
+
+  const parsedValue = parseValue(value);
+
+  if (Array.isArray(parsedValue)) {
+    const displayText = parsedValue.length === 0 ? 'Empty' : `View (${parsedValue.length})`;
+    
+    return (
+      <div className="relative" onClick={e => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={toggleDropdown}
+          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors flex items-center gap-1"
+        >
+          {displayText}
+          <svg 
+            className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isOpen && (
+          <div 
+            className="absolute mt-1 bg-white border-gray-200 rounded-md shadow-lg z-50"
+            style={{
+              maxHeight: '200px',
+              overflowY: 'auto',
+              width: 'max-content',
+              maxWidth: '300px'
+            }}
+          >
+            {parsedValue.length > 0 ? (
+              parsedValue.map((item, index) => (
+                <div
+                  key={index}
+                  onClick={(e) => handleItemClick(item, index, 'array', e)}
+                  className="px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 cursor-pointer"
+                >
+                  <div className="text-xs break-words">
+                    {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-xs text-gray-500">No items</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  } 
+  
+  else if (typeof parsedValue === 'object' && parsedValue !== null) {
+    const entries = Object.entries(parsedValue);
+    const displayText = entries.length === 0 ? 'Empty' : `View (${entries.length})`;
+    
+    return (
+      <div className="relative" onClick={e => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={toggleDropdown}
+          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors flex items-center gap-1"
+        >
+          {displayText}
+          <svg 
+            className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isOpen && (
+          <div 
+            className="absolute mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+            style={{
+              maxHeight: '200px',
+              overflowY: 'auto',
+              width: 'max-content',
+              maxWidth: '300px'
+            }}
+          >
+            {entries.length > 0 ? (
+              entries.map(([key, val], index) => (
+                <div
+                  key={index}
+                  onClick={(e) => handleItemClick(val, key, 'object', e)}
+                  className="px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 cursor-pointer"
+                >
+                  <div className="text-xs">
+                    <span className="font-medium text-green-600">{key}:</span>
+                    <div className="mt-1 break-words text-red-600">
+                      {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-xs text-gray-500">No properties</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  return value;
 };
 
 // Function to render array/object as dropdown
@@ -472,7 +598,7 @@ const renderAsDropdown = (value, onItemClick) => {
   return <ArrayObjectDropdown value={value} onItemClick={onItemClick} />;
 };
 
-// Modified table cell renderer
+/* Modified table cell renderer
 const renderCell = (value, header, row, editingId, editingData, setEditingData, onDropdownItemClick) => {
   if (isArrayOrObject(value)) {
     return renderAsDropdown(value, onDropdownItemClick);
@@ -494,8 +620,36 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
   }
   
   return value;
-};
+};*/
 
+const renderCell = (value, header, row, rowIndex, editingId, editingData, setEditingData, onDropdownItemClick) => {
+  if (isArrayOrObject(value)) {
+    return (
+      <ArrayObjectDropdown 
+        value={value} 
+        onItemClick={onDropdownItemClick}
+        rowIndex={rowIndex}
+        columnName={header}
+      />
+    );
+  }
+  
+  if (editingId === row.id) {
+    return (
+      <input
+        type="text"
+        value={editingData[header] || ''}
+        onChange={(e) => setEditingData({
+          ...editingData,
+          [header]: e.target.value
+        })}
+        className="w-full px-2 py-1 border rounded"
+      />
+    );
+  }
+  
+  return value;
+};  
 
   return (
     <div className="relative overflow-x-auto shadow-md sm:rounded-lg" id="ttbl">
@@ -620,6 +774,7 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
                   row[header], 
                   header, 
                   row, 
+                  indx,
                   editingId, 
                   editingData, 
                   setEditingData
@@ -666,7 +821,6 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
           </tbody>
         </table>
       </div>
-
       <div className='text-white flex w-full overflow-auto mt-3'>
       <nav className='flex'>
         <ul className='flex max-w-100'>
@@ -674,14 +828,14 @@ const renderCell = (value, header, row, editingId, editingData, setEditingData, 
           {!!numbers && numbers.map((n, i) => {
             return (
               <li key={i}>
-                  <button className={`${currentPage === n ? 'bg-red-600 text-white' : 'bg-white'} m-1 px-1 text-gray-800 dark:text-gray-800 rounded cursor-pointer hover:scale-85`} onClick={() => handlePage(n)}>{n}</button>
+                  <button className={`${currentPage === n ? 'bg-red-600 text-white dark:text-white' : 'bg-white'} m-1 px-1 text-gray-800 dark:text-gray-800 rounded cursor-pointer hover:scale-85`} onClick={() => handlePage(n)}>{n}</button>
                 </li>
                    );
           })}
 
         </ul>
       </nav> 
-        </div>
+      </div>
 
     </div>
   );
