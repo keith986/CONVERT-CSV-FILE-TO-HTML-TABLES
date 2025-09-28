@@ -3,12 +3,12 @@ import { updateDataInFirebase, deleteRowDataFromFirebase, deleteDataFromFirebase
 import { toast } from 'react-toastify';
 
 interface DataTableProps {
-  data: any[]; 
+  data: any,
   onRefresh? : () => void;
 }
 
 
-const datatable = ({ data, onRefresh }: DataTableProps) => {
+const datatable = ({ data , onRefresh }: DataTableProps) => {
 const [editingId, setEditingId] = useState<string | null>(null);
 const [editingData, setEditingData] = useState<any>({});
 const [isAddingRow, setIsAddingRow] = useState(false);
@@ -29,7 +29,7 @@ const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({})
     );
   }
 
-  if(data.records === null || data.records === [] || data.records.length === 0){
+  if(data.records === null || data.records === '' || data.records.length === 0){
     const id = dataId;
     deleteDataFromFirebase(id);
     window.location.reload()
@@ -44,7 +44,7 @@ const [columnOrder, setColumnOrder] = useState(Object.keys(data.records[0]).filt
     window.location.reload()
   }
 
-  const handleEdit = (row, indx) => {
+  const handleEdit = (row: any, indx: number) => {
     setEditingId(row);
     const rowData: any = {};
     headers.forEach(header => {
@@ -108,7 +108,7 @@ const [columnOrder, setColumnOrder] = useState(Object.keys(data.records[0]).filt
     setEditingData({});
   };
 
-  const handleDelete = async (indx, row) => {
+  const handleDelete = async (indx: number, row:any) => {
     if (!confirm('Are you sure you want to delete this row?')) return; 
       await deleteRowDataFromFirebase({dataId: dataId, recordIndex : indx, deletingData: row})
       .then(res => {

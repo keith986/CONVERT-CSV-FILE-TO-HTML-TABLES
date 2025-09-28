@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { uploadDataToFirebase } from '../lib/firebaseoperation.ts';
+import { uploadDataToFirebase } from '../lib/firebaseoperation';
 
 export default function TableCreator() {
   const [numColumns, setNumColumns] = useState('');
-  const [headers, setHeaders] = useState([]);
+  const [headers, setHeaders] = useState<string[]>([]);
 
   // Handle column number change to generate header inputs
-  const handleColumnsChange = (value) => {
+  const handleColumnsChange = (value : any) => {
     setNumColumns(value);
     const columnCount = parseInt(value);
     
@@ -22,7 +22,7 @@ export default function TableCreator() {
     }
   };
 
-   const generateDummyValue = (header, index) => {
+   const generateDummyValue = (header: string, index: number): string => {
     const headerLower = header.toLowerCase();
     if (headerLower.includes('name')) return `Sample Name ${index}`;
     if (headerLower.includes('email')) return `user${index}@example.com`;
@@ -33,13 +33,13 @@ export default function TableCreator() {
   };
 
 // Update specific header
-  const updateHeader = (index, value) => {
+  const updateHeader = (index : number, value: string) => {
     const newHeaders = [...headers];
     newHeaders[index] = value;
     setHeaders(newHeaders);
   };
 
-
+  // Create table with dummy data and upload to Firebase
   const createTable = async() => {
        // Validate inputs
     if (!numColumns || parseInt(numColumns) <= 0) {
@@ -71,11 +71,11 @@ export default function TableCreator() {
     }
 
    // Create dummy row with sample data or formulas
-    const dummyRow = headers.map((header, index) => generateDummyValue(header, index));
+    const dummyRow = headers.map((header: string, index: number) => generateDummyValue(header, index));
     // Create table data array as objects with headers as keys
     const tableDataArray = [dummyRow].map(row => {
-      const obj = {};
-      headers.forEach((header, index) => {
+      const obj: { [key: string]: string } = {};
+      headers.forEach((header: string, index: number) => {
         obj[header] = row[index] || '';
       });
       return obj;
