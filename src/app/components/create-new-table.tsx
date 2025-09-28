@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { uploadDataToFirebase } from '../lib/firebaseoperation.ts';
+import { uploadDataToFirebase } from '../lib/firebaseoperation';
 
 export default function TableCreator() {
   const [numColumns, setNumColumns] = useState('');
